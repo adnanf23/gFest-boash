@@ -3,6 +3,20 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\PendaftaranController;
+// 🟢 TAMBAHKAN BARIS INI UNTUK MENG-IMPORT CONTROLLER ADMIN ANDA
+use App\Http\Controllers\AdminAuthController; 
+
+
+Route::get('/admin/login', function () {
+    return Inertia::render('Admin/Login');
+})->name('admin.login');
+
+// Route ini sekarang akan berfungsi
+Route::post('/api/admin/login', [AdminAuthController::class, 'login']);
+
+Route::get('/admin/dashboard', function () {
+    return Inertia::render('Admin/Dashboard');
+})->name('admin.dashboard');
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -34,4 +48,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
