@@ -9,14 +9,8 @@ class Pendaftaran extends Model
 {
     use HasFactory;
 
-    /**
-     * Nama tabel
-     */
     protected $table = 'pendaftarans';
 
-    /**
-     * Field yang bisa diisi (mass assignment)
-     */
     protected $fillable = [
         'tipe_pendaftar',
         'nama_lengkap',
@@ -25,35 +19,26 @@ class Pendaftaran extends Model
         'alasan',
         'nama_siswa',
         'kelas',
+        'status',           // ✅ TAMBAHKAN
+        'username',         // ✅ TAMBAHKAN
+        'password',         // ✅ TAMBAHKAN
+        'qr_code_path',     // ✅ TAMBAHKAN
     ];
 
-    /**
-     * Cast tipe data
-     */
     protected $casts = [
-        'usia' => 'integer',  // ✅ Ubah dari 'string' ke 'integer'
+        'tipe_pendaftar' => 'string',
+        'usia' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Accessor: Format nomor telepon
-     */
+    // Accessor untuk format nomor telepon
     public function getFormattedNoTelpAttribute()
     {
-        $noTelp = $this->no_telp;
-        
-        // Pastikan no_telp memiliki panjang yang cukup
-        if (strlen($noTelp) < 10) {
-            return $noTelp;
-        }
-        
-        return substr($noTelp, 0, 4) . '-' . substr($noTelp, 4, 4) . '-' . substr($noTelp, 8);
+        return substr($this->no_telp, 0, 4) . '-' . substr($this->no_telp, 4, 4) . '-' . substr($this->no_telp, 8);
     }
 
-    /**
-     * Scope: Filter by tipe pendaftar
-     */
+    // Scopes
     public function scopeUmum($query)
     {
         return $query->where('tipe_pendaftar', 'umum');
@@ -64,31 +49,8 @@ class Pendaftaran extends Model
         return $query->where('tipe_pendaftar', 'internal');
     }
 
-    /**
-     * Scope: Filter by usia range
-     */
-    public function scopeByUsiaRange($query, $minAge, $maxAge)
+    public function scopeByUsia($query, $usia)
     {
-        return $query->whereBetween('usia', [$minAge, $maxAge]);
-    }
-
-    /**
-     * Accessor: Get usia range label
-     */
-    public function getUsiaRangeLabelAttribute()
-    {
-        $usia = $this->usia;
-        
-        if ($usia >= 20 && $usia <= 30) {
-            return '20 - 30 tahun';
-        } elseif ($usia >= 31 && $usia <= 40) {
-            return '31 - 40 tahun';
-        } elseif ($usia >= 41 && $usia <= 50) {
-            return '41 - 50 tahun';
-        } elseif ($usia > 50) {
-            return '50+ tahun';
-        }
-        
-        return 'Tidak diketahui';
+        return $query->where('usia', $usia);
     }
 }

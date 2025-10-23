@@ -1,5 +1,9 @@
 import { useState, FormEvent } from "react";
 import axios from "axios";
+import H1 from "@/components/atom/heading";
+import Paragraph from "@/components/atom/paragraph";
+
+
 
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
@@ -19,19 +23,31 @@ export default function AdminLogin() {
         // Simpan token/session jika perlu, atau langsung redirect
         window.location.href = "/admin/dashboard";
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Terjadi kesalahan");
-      console.log(err.response?.data || err);
+    } catch (err: unknown) {
+if (axios.isAxiosError(err)) {
+            // Jika err adalah error Axios, properti '.response' akan ada.
+            const errorMessage = err.response?.data?.message || "Terjadi kesalahan";
+            
+            setError(errorMessage);
+            console.log(err.response?.data || err);
+        } else {
+            // Tangani error yang tidak berasal dari Axios
+            setError("Terjadi kesalahan yang tidak diketahui.");
+            console.log(err);
+        }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md p-8 rounded-lg shadow-lg">
         {/* Header */}
-        <h1 className="text-3xl font-bold text-white mb-6 text-center">Admin Login</h1>
+        <div className="space-y-2">
+        <H1>Portal Masuk Admin</H1>
+<Paragraph>Silahkan masuk untuk manage data pendaftar!</Paragraph>
+        </div>
 
         {/* Error */}
         {error && (
@@ -39,9 +55,9 @@ export default function AdminLogin() {
             {error}
           </div>
         )}
-
+<br /><br />
         {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-8">
           {/* Username */}
           <div>
             <label className="text-gray-300 block mb-1">Username</label>
@@ -66,13 +82,13 @@ export default function AdminLogin() {
               placeholder="••••••••"
               required
             />
-          </div>
+          </div><br />
 
           {/* Submit */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-lg bg-white text-black font-semibold hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

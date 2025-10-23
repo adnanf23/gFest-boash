@@ -24,7 +24,7 @@ export default function H1({
         ${alignmentClass}
         ${fontWeight} text-white
         text-3xl
-        lg:text-5xl
+        lg:text-5xl lg:leading-14
         ${className}
       `.trim().replace(/\s+/g, " ")}
     >
