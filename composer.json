@@ -12,6 +12,7 @@
         "php": "^8.2",
         "bacon/bacon-qr-code": "^3.0",
         "doctrine/dbal": "^4.3",
+        "endroid/qr-code": "^6.0",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",
