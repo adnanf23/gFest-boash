@@ -3,7 +3,7 @@ import axios from "axios";
 // import { router } from "@inertiajs/react";
 import Sidebar from "@/components/template/sidebar";
 // LogOut tidak lagi di-import di sini jika sudah ada di Sidebar
-import { Home, Users, Settings, FileText, Trash2 } from "lucide-react"; 
+import { Home, Users, Settings, FileText, Trash2, Search } from "lucide-react"; 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import H1 from "@/components/atom/heading";
 import Paragraph from "@/components/atom/paragraph";
@@ -19,7 +19,6 @@ interface MenuItem {
   onClick?: () => void;
 }
 
-// 🎯 KOREKSI: Tambahkan semua kolom baru dari database
 interface Pendaftaran {
   id: number;
   nama_lengkap: string;
@@ -30,8 +29,7 @@ interface Pendaftaran {
   nama_siswa?: string;
   kelas?: string;
   created_at?: string;
-  // KOLOM BARU (ditambahkan di database)
-  status: 'belum di cek' | 'diterima' | 'ditolak';
+  status: 'belum di cek' | 'diterima' | 'ditolak' | 'belum_dicek';
   username?: string;
   password?: string;
   qr_code_path?: string;
@@ -41,14 +39,19 @@ type ApiResponse = Pendaftaran[] | { data: Pendaftaran[] };
 
 export default function AdminDashboard() {
   const [pendaftaran, setPendaftaran] = useState<Pendaftaran[]>([]);
-  
   const [activeTab, setActiveTab] = useState<string>('');
   
-  // 🎯 STATE BARU UNTUK MODAL DETAIL
+  // 🎯 STATE UNTUK PENCARIAN
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  // STATE UNTUK MODAL DETAIL
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedPendaftar, setSelectedPendaftar] = useState<Pendaftaran | null>(null); 
 
-  // 1. Inisialisasi dan Pemantauan Hash URL
+  // =======================================================
+  // [Effect & Handlers]
+  // =======================================================
+  
   useEffect(() => {
     const updateActiveTab = () => {
         const hash = window.location.hash.substring(1); 
@@ -63,14 +66,25 @@ export default function AdminDashboard() {
     };
   }, []); 
 
-  // 🎯 FUNGSI BARU: Update Status (ACC/Reject)
+  useEffect(() => {
+      axios
+        .get<ApiResponse>("http://localhost:8000/api/pendaftaran") 
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data : res.data.data;
+        setPendaftaran(data ?? []); 
+      })
+      .catch((err) => {
+        console.error("Gagal mengambil data:", err);
+        alert("Gagal mengambil data pendaftaran. Cek konsol dan pastikan server Laravel berjalan.");
+      });
+  }, []);
+  
   const handleUpdateStatus = async (id: number, newStatus: 'diterima' | 'ditolak'): Promise<void> => {
     if (!window.confirm(`Yakin ingin mengubah status ID ${id} menjadi ${newStatus}? Tindakan ini akan ${newStatus === 'diterima' ? 'menggenerasi kredensial.' : 'menghapus kredensial yang ada.'}`)) {
         return;
     }
     
     try {
-        // Panggil API updateStatus yang sudah Anda buat di PendaftaranController
         const res = await axios.put(`http://localhost:8000/api/pendaftaran/update-status/${id}`, { status: newStatus }); 
         
         const updatedPendaftar = res.data.pendaftar as Pendaftaran;
@@ -86,13 +100,11 @@ export default function AdminDashboard() {
     }
   };
 
-  // 🎯 FUNGSI BARU: Membuka Modal Detail
   const handleViewDetails = (pendaftar: Pendaftaran) => {
     setSelectedPendaftar(pendaftar);
     setShowModal(true);
   };
   
-  // 🗑️ Fungsi hapus data (tetap sama)
   const handleDelete = async (id: number): Promise<void> => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus data pendaftar ini?")) {
         return;
@@ -108,19 +120,22 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => {
-      axios
-        .get<ApiResponse>("http://localhost:8000/api/pendaftaran") 
-      .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data;
-        setPendaftaran(data ?? []); 
-      })
-      .catch((err) => {
-        console.error("Gagal mengambil data:", err);
-      });
-  }, []);
 
-  // [Logika Grafik dan Data Statistik tetap sama]
+  // =======================================================
+  // [Logika Data]
+  // =======================================================
+  
+  // 🎯 LOGIKA PENCARIAN DAN FILTERING
+  const filteredPendaftaran = pendaftaran.filter(pendaftar => {
+      // Pastikan nama_lengkap ada, ubah ke lowercase, lalu cek apakah mengandung searchTerm
+      const nama = pendaftar.nama_lengkap?.toLowerCase() || '';
+      const term = searchTerm.toLowerCase();
+      return nama.includes(term);
+  });
+  
+  const pendingRegistrations = pendaftaran.filter(p => p.status === 'belum di cek' || p.status === 'belum_dicek').length;
+
+  // Logika Grafik (Tetap Sama)
   const targetTotal = 1000;
   const startDate = new Date();
   const endDate = new Date('2025-12-01');
@@ -158,21 +173,14 @@ export default function AdminDashboard() {
     });
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  // const todayRegistrations = pendaftaran.filter((item) => {
-  //   const createdDate = item.created_at ? new Date(item.created_at) : new Date();
-  //   createdDate.setHours(0, 0, 0, 0);
-  //   return createdDate.getTime() === today.getTime();
-  // }).length;
-  
-  const pendingRegistrations = pendaftaran.filter(p => p.status === 'belum di cek').length;
-
-  // Custom menu items untuk admin
   const adminMenuItems: MenuItem[] = [
     { icon: Home, label: 'Overview', href: '#overview' }, 
     { icon: Users, label: 'Manage', href: '#manage', badge: pendingRegistrations > 0 ? pendingRegistrations : undefined },
   ];
+  
+  // =======================================================
+  // [Render Component]
+  // =======================================================
 
   return (
     <Sidebar brandName="Administrator" menuItems={adminMenuItems}>
@@ -189,11 +197,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* ======================================================= */}
-        {/* TAMPILAN OVERVIEW (Sama) */}
+        {/* TAMPILAN OVERVIEW (Tidak berubah) */}
         {/* ======================================================= */}
         {activeTab === 'overview' && (
+            // ... (Konten Overview tetap sama)
             <>
-                {/* Stats Cards (Sama) */}
+                {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 p-6 rounded-xl shadow-xl border border-gray-600">
                       <div className="flex items-center justify-between">
@@ -235,7 +244,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Grafik Pendaftar (Sama) */}
+                {/* Grafik Pendaftar */}
                 <div className="bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-xl overflow-hidden mb-6 border border-gray-600">
                     <div className="p-6 border-b border-gray-600">
                       <h2 className="text-xl font-semibold text-white">Grafik Pendaftar Mingguan (Target: 1000 Pendaftar)</h2>
@@ -316,9 +325,24 @@ export default function AdminDashboard() {
         {/* ======================================================= */}
         {activeTab === 'manage' && (
             <div className="bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-xl overflow-auto border border-gray-600">
-              <div className="p-6 border-b border-gray-600">
-                <h2 className="text-xl font-semibold text-white">Data Pendaftaran</h2>
-                <p className="text-gray-400 text-sm mt-1">Daftar lengkap pendaftar</p>
+              <div className="p-6 border-b border-gray-600 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Data Pendaftaran</h2>
+                  <p className="text-gray-400 text-sm mt-1">Daftar lengkap pendaftar</p>
+                </div>
+                
+                {/* 🎯 INPUT PENCARIAN */}
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="Cari berdasarkan nama..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-gray-900 border border-gray-600 text-white placeholder-gray-400 rounded-lg py-2 pl-10 pr-4 focus:ring-blue-500 focus:border-blue-500 w-64 transition duration-150"
+                    />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                </div>
+                
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full">
@@ -329,20 +353,25 @@ export default function AdminDashboard() {
                       <th className="p-4">No. Telp</th>
                       <th className="p-4 w-24">Usia</th>
                       <th className="p-4">Tipe</th>
-                      <th className="p-4">Status</th> {/* ⬅️ Kolom Status Baru */}
+                      <th className="p-4">Status</th> 
                       <th className="p-4 text-center">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendaftaran.length === 0 ? (
+                    {/* 🎯 GUNAKAN filteredPendaftaran */}
+                    {filteredPendaftaran.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="text-center p-8 text-gray-400">
                           <Users className="mx-auto mb-2 text-gray-500" size={48} />
-                          <p>Belum ada data pendaftar.</p>
+                          <p>
+                            {pendaftaran.length === 0 
+                                ? "Belum ada data pendaftar." 
+                                : `Tidak ada data pendaftar yang cocok dengan "${searchTerm}".`}
+                          </p>
                         </td>
                       </tr>
                     ) : (
-                      pendaftaran.map((item) => (
+                      filteredPendaftaran.map((item) => ( 
                         <tr key={item.id} className="border-b border-gray-600/50 hover:bg-gray-700/50 transition duration-100">
                           <td className="p-4 text-gray-300">{item.id}</td>
                           <td className="p-4 font-medium text-white">{item.nama_lengkap}</td>
@@ -353,43 +382,46 @@ export default function AdminDashboard() {
                               {item.tipe_pendaftar}
                             </span>
                           </td>
-                          {/* ⬅️ Tampilan Status */}
                           <td className="p-4">
                             <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full 
                               ${item.status === 'diterima' ? 'bg-green-600' : 
                                 item.status === 'ditolak' ? 'bg-red-600' : 
                                 'bg-yellow-600'} text-white`}>
-                              {item.status.toUpperCase()}
+                              {item.status.toUpperCase().replace('_DICEK', ' DI CEK')}
                             </span>
                           </td>
-                          {/* ⬅️ Tombol Aksi */}
+                          {/* ⬅️ Tombol Aksi (Menggunakan Logika Conditional Rendering yang Diminta) */}
                           <td className="p-4 text-center space-x-2 flex items-center justify-center">
                             
                             {/* Tombol Lihat (Hanya aktif jika status DITERIMA) */}
-                                <button
-                                  onClick={() => handleViewDetails(item)}
-                                  className="bg-blue-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-blue-700 transition font-medium"
-                                >
-                                  Lihat
-                                </button>
+                            <button
+                                onClick={() => handleViewDetails(item)}
+                                className={`px-3 py-1 text-sm rounded-lg transition font-medium 
+                                    ${item.status === 'diterima' 
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                        : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                                disabled={item.status !== 'diterima'}
+                            >
+                                Lihat
+                            </button>
                             
-                            {/* Tombol ACC (hanya aktif jika belum di cek atau ditolak) */}
-                            {item.status !== 'diterima' && (
+                            {/* Tombol ACC: HANYA tampil jika status BUKAN 'diterima' */}
+                            {(item.status === 'belum di cek' || item.status === 'ditolak' || item.status === 'belum_dicek') && (
                                 <button
-                                  onClick={() => handleUpdateStatus(item.id, 'diterima')}
-                                  className="bg-green-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-green-700 transition font-medium"
+                                    onClick={() => handleUpdateStatus(item.id, 'diterima')}
+                                    className="bg-green-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-green-700 transition font-medium"
                                 >
-                                  ACC
+                                    ACC
                                 </button>
                             )}
 
-                            {/* Tombol Reject (hanya aktif jika belum di cek atau diterima) */}
-                            {item.status !== 'ditolak' && (
+                            {/* Tombol Reject: HANYA tampil jika status BUKAN 'ditolak' */}
+                            {(item.status === 'belum di cek' || item.status === 'diterima' || item.status === 'belum_dicek') && (
                                 <button
-                                  onClick={() => handleUpdateStatus(item.id, 'ditolak')}
-                                  className="bg-red-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-red-700 transition font-medium"
+                                    onClick={() => handleUpdateStatus(item.id, 'ditolak')}
+                                    className="bg-red-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-red-700 transition font-medium"
                                 >
-                                  Reject
+                                    Reject
                                 </button>
                             )}
 
@@ -410,7 +442,7 @@ export default function AdminDashboard() {
             </div>
         )}
         
-        {/* 🎯 MODAL DETAIL (Untuk Tombol Lihat) */}
+        {/* MODAL DETAIL (Tidak berubah) */}
         {showModal && selectedPendaftar && (
             <div className="fixed inset-0 bg-[#000000c4] bg-opacity-30 flex items-center justify-center z-50 p-4">
                 <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md">
@@ -420,27 +452,24 @@ export default function AdminDashboard() {
                         <p><strong>Nama:</strong> <span className="text-white">{selectedPendaftar.nama_lengkap}</span></p>
                         <p><strong>Status:</strong> <span className="text-green-400 font-bold">{selectedPendaftar.status.toUpperCase()}</span></p>
                         <p><strong>Username:</strong> <span className="text-white font-mono">{selectedPendaftar.username || 'N/A'}</span></p>
-                        {/* Password default: 12345678 (Sesuai PendaftaranController) */}
                         <p><strong>Password Default:</strong> <span className="text-white font-mono">12345678</span></p> 
                     </div>
 
                     <div className="mt-6 text-center">
                         <h4 className="font-semibold text-lg text-white mb-3">QR Code Akses</h4>
                        {selectedPendaftar.qr_code_path ? (
-    <img 
-        // 🎯 Ganti localhost menjadi 127.0.0.1 untuk sinkronisasi dengan server yang terdeteksi
-        src={`http://127.0.0.1:8000${selectedPendaftar.qr_code_path}`} 
-        alt={`QR Code ${selectedPendaftar.username}`} 
-        className="mx-auto w-48 h-48 border-4 border-white p-2 bg-white rounded-lg shadow-xl"
-        // Tambahkan onError untuk debug
-        onError={(e) => {
-            console.error("QR Code gagal dimuat. URL yang dicoba:", e.currentTarget.src);
-            e.currentTarget.onerror = null; // Mencegah loop
-        }}
-    />
-) : (
-    <p className="text-red-400">QR Code belum digenerate atau tidak ditemukan.</p>
-)}
+                            <img 
+                                src={`http://127.0.0.1:8000${selectedPendaftar.qr_code_path}`} 
+                                alt={`QR Code ${selectedPendaftar.username}`} 
+                                className="mx-auto w-48 h-48 border-4 border-white p-2 bg-white rounded-lg shadow-xl"
+                                onError={(e) => {
+                                    console.error("QR Code gagal dimuat. URL yang dicoba:", e.currentTarget.src);
+                                    e.currentTarget.onerror = null; 
+                                }}
+                            />
+                        ) : (
+                            <p className="text-red-400">QR Code belum digenerate atau tidak ditemukan.</p>
+                        )}
                     </div>
 
                     <button

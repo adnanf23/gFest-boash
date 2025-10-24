@@ -96,7 +96,7 @@ $validated['status'] = 'belum_dicek';
         return response()->json(['message' => 'Pendaftaran berhasil dihapus!']);
     }
 
-    // 🟢 Update status (ACC / Reject)
+    // 🟢 Update status (ACC / Reject)r
     public function updateStatus(Request $request, $id)
     {
         $validated = $request->validate([
