@@ -412,7 +412,7 @@ export default function AdminDashboard() {
         
         {/* 🎯 MODAL DETAIL (Untuk Tombol Lihat) */}
         {showModal && selectedPendaftar && (
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="fixed inset-0 bg-[#000000c4] bg-opacity-30 flex items-center justify-center z-50 p-4">
                 <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md">
                     <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">Detail Kredensial Pendaftar</h3>
                     
