@@ -378,7 +378,7 @@ export default function AdminDashboard() {
                           <td className="p-4 text-gray-300">{item.no_telp}</td>
                           <td className="p-4 text-gray-300">{item.usia}</td>
                           <td className="p-4">
-                            <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-indigo-600 text-white">
+                            <span className={`inline-block px-3 py-1 text-xs ${item.tipe_pendaftar == 'umum' ? 'bg-indigo-600' : 'bg-pink-600'} font-semibold rounded-full  text-white`}>
                               {item.tipe_pendaftar}
                             </span>
                           </td>
@@ -391,7 +391,7 @@ export default function AdminDashboard() {
                             </span>
                           </td>
                           {/* ⬅️ Tombol Aksi (Menggunakan Logika Conditional Rendering yang Diminta) */}
-                          <td className="p-4 text-center space-x-2 flex items-center justify-center">
+                          <td className="p-4 text-center space-x-2 flex items-centre justify-start">
                             
                             {/* Tombol Lihat (Hanya aktif jika status DITERIMA) */}
                             <button
