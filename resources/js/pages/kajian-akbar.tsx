@@ -150,7 +150,7 @@ export default function KajianPage() {
                         </span>
                         <div>
                             <p className="text-slate-400">
-                                Silakan lakukan pembayaran ke rekening berikut:
+                                Silakan berinfak yang terbaik ke rekening berikut:
                             </p>
                             <div className="mt-2 rounded-lg border border-slate-700 bg-slate-800 p-3">
                                 <p className="text-sm text-slate-300">
@@ -174,15 +174,14 @@ export default function KajianPage() {
                         <span className="min-w-[24px] font-semibold text-slate-300">
                             2.
                         </span>
-                        <span className="text-slate-400">Mengisi Form</span>
+                        <span className="text-slate-400">Mengisi Form Pendaftaran.</span>
                     </div>
                     <div className="flex gap-3">
                         <span className="min-w-[24px] font-semibold text-slate-300">
                             3.
                         </span>
                         <span className="text-slate-400">
-                            Setelah melakukan pembayaran, simpan bukti
-                            pembayaran atau QR Code yang diberikan oleh panitia.
+                            Setelah melakukan pembayaran dan unggah pada form pendaftaran
                         </span>
                     </div>
                     <div className="flex gap-3">
@@ -190,8 +189,7 @@ export default function KajianPage() {
                             4.
                         </span>
                         <span className="text-slate-400">
-                            Unggah bukti pembayaran/QR Code pada kolom yang
-                            tersedia di bawah ini.
+                            Jika pendaftaran berhasil divalidasi oleh panita maka kamu akan mendapatkan QR gateway untuk masuk ke acara.
                         </span>
                     </div>
                     <div className="flex gap-3">
@@ -199,17 +197,8 @@ export default function KajianPage() {
                             5.
                         </span>
                         <span className="text-slate-400">
-                            Pastikan data dan bukti yang diunggah jelas dan
-                            sesuai agar proses verifikasi berjalan lancar.
-                        </span>
-                    </div>
-                    <div className="flex gap-3">
-                        <span className="min-w-[24px] font-semibold text-slate-300">
-                            6.
-                        </span>
-                        <span className="text-slate-400">
                             Saat kegiatan berlangsung, bawa QR Code yang telah
-                            dimiliki sebagai bukti registrasi.
+                            dimiliki sebagai tiket masuk.
                         </span>
                     </div>
                 </div>

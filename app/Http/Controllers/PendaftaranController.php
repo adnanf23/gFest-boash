@@ -39,7 +39,7 @@ class PendaftaranController extends Controller
 
         // Default status langsung diterima
         // Default status: belum dicek
-$validated['status'] = 'belum_dicek';
+$validated['status'] = 'belum dicek';
         $password = '12345678';
 
         // Simpan dulu agar punya ID

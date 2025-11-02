@@ -29,7 +29,7 @@ interface Pendaftaran {
   nama_siswa?: string;
   kelas?: string;
   created_at?: string;
-  status: 'belum di cek' | 'diterima' | 'ditolak' | 'belum_dicek';
+  status: 'belum dicek' | 'diterima' | 'ditolak';
   username?: string;
   password?: string;
   qr_code_path?: string;
@@ -67,58 +67,59 @@ export default function AdminDashboard() {
   }, []); 
 
   useEffect(() => {
-      axios
-        .get<ApiResponse>("http://localhost:8000/api/pendaftaran") 
-      .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data;
-        setPendaftaran(data ?? []); 
-      })
-      .catch((err) => {
-        console.error("Gagal mengambil data:", err);
-        alert("Gagal mengambil data pendaftaran. Cek konsol dan pastikan server Laravel berjalan.");
-      });
-  }, []);
+  axios.get<ApiResponse>("/api/pendaftaran") // ✅ Hapus http://localhost:8000
+    .then((res) => {
+      const data = Array.isArray(res.data) ? res.data : res.data.data;
+      setPendaftaran(data ?? []); 
+    })
+    .catch((err) => {
+      console.error("Gagal mengambil data:", err);
+      alert("Gagal mengambil data pendaftaran.");
+    });
+}, []);
   
-  const handleUpdateStatus = async (id: number, newStatus: 'diterima' | 'ditolak'): Promise<void> => {
-    if (!window.confirm(`Yakin ingin mengubah status ID ${id} menjadi ${newStatus}? Tindakan ini akan ${newStatus === 'diterima' ? 'menggenerasi kredensial.' : 'menghapus kredensial yang ada.'}`)) {
-        return;
-    }
+const handleUpdateStatus = async (id: number, newStatus: 'diterima' | 'ditolak'): Promise<void> => {
+  if (!window.confirm(`Yakin ingin mengubah status ID ${id} menjadi ${newStatus}?`)) {
+    return;
+  }
+  
+  try {
+    const res = await axios.put(`/api/pendaftaran/update-status/${id}`, { 
+      status: newStatus 
+    });
     
-    try {
-        const res = await axios.put(`http://localhost:8000/api/pendaftaran/update-status/${id}`, { status: newStatus }); 
-        
-        const updatedPendaftar = res.data.pendaftar as Pendaftaran;
-        
-        setPendaftaran((prev) => 
-            prev.map((p) => (p.id === id ? updatedPendaftar : p))
-        );
-        alert(`Status berhasil diubah menjadi ${newStatus}.`);
+    const updatedPendaftar = res.data.pendaftar as Pendaftaran;
+    
+    setPendaftaran((prev) => 
+      prev.map((p) => (p.id === id ? updatedPendaftar : p))
+    );
+    alert(`Status berhasil diubah menjadi ${newStatus}.`);
 
-    } catch (error) {
-        console.error("Gagal update status:", error);
-        alert("Gagal update status. Pastikan API updateStatus berfungsi dan kolom database ada.");
-    }
-  };
+  } catch (error) {
+    console.error("Gagal update status:", error);
+    alert("Gagal update status. Pastikan API berfungsi dengan baik.");
+  }
+};
 
   const handleViewDetails = (pendaftar: Pendaftaran) => {
     setSelectedPendaftar(pendaftar);
     setShowModal(true);
   };
   
-  const handleDelete = async (id: number): Promise<void> => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus data pendaftar ini?")) {
-        return;
-    }
-    
-    try {
-      await axios.delete(`http://localhost:8000/api/admin/pendaftaran/${id}`); 
-      setPendaftaran((prev) => prev.filter((p) => p.id !== id));
-      console.log(`Data pendaftar ID ${id} berhasil dihapus.`);
-    } catch (error) {
-      console.error("Gagal menghapus data:", error);
-      alert("Gagal menghapus. Pastikan Anda memiliki izin akses.");
-    }
-  };
+ const handleDelete = async (id: number): Promise<void> => {
+  if (!window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+    return;
+  }
+  
+  try {
+    await axios.delete(`/api/admin/pendaftaran/${id}`); // ✅ Relative URL
+    setPendaftaran((prev) => prev.filter((p) => p.id !== id));
+    alert("Data berhasil dihapus.");
+  } catch (error) {
+    console.error("Gagal menghapus data:", error);
+    alert("Gagal menghapus data.");
+  }
+};
 
 
   // =======================================================
@@ -133,7 +134,7 @@ export default function AdminDashboard() {
       return nama.includes(term);
   });
   
-  const pendingRegistrations = pendaftaran.filter(p => p.status === 'belum di cek' || p.status === 'belum_dicek').length;
+  const pendingRegistrations = pendaftaran.filter(p => p.status === 'belum dicek').length;
 
   // Logika Grafik (Tetap Sama)
   const targetTotal = 1000;
@@ -406,7 +407,7 @@ export default function AdminDashboard() {
                             </button>
                             
                             {/* Tombol ACC: HANYA tampil jika status BUKAN 'diterima' */}
-                            {(item.status === 'belum di cek' || item.status === 'ditolak' || item.status === 'belum_dicek') && (
+                            {(item.status === 'belum dicek' || item.status === 'ditolak') && (
                                 <button
                                     onClick={() => handleUpdateStatus(item.id, 'diterima')}
                                     className="bg-green-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-green-700 transition font-medium"
@@ -416,7 +417,7 @@ export default function AdminDashboard() {
                             )}
 
                             {/* Tombol Reject: HANYA tampil jika status BUKAN 'ditolak' */}
-                            {(item.status === 'belum di cek' || item.status === 'diterima' || item.status === 'belum_dicek') && (
+                            {(item.status === 'belum dicek' || item.status === 'diterima') &&  (
                                 <button
                                     onClick={() => handleUpdateStatus(item.id, 'ditolak')}
                                     className="bg-red-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-red-700 transition font-medium"

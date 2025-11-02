@@ -12,8 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
 protected $except = [
-    // Tambahkan rute API publik Anda di sini:
-    'api/pendaftaran', 
     // atau gunakan wildcard jika ada rute API lain yang dikecualikan
     'api/*', 
 ];
