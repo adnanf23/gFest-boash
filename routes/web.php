@@ -24,7 +24,7 @@ Route::post('/api/pendaftaran', [PendaftaranController::class, 'store']);
 // ========== RUTE ADMIN LOGIN ==========
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])
     ->name('admin.login');
-Route::post('/admin/login', [AdminAuthController::class, 'login'])
+Route::post('/api/admin/login', [AdminAuthController::class, 'login'])
     ->name('admin.login.submit');
 
 // ========== RUTE ADMIN (PROTECTED) ==========
@@ -43,6 +43,7 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('/pendaftaran/{id}', [PendaftaranController::class, 'show']);
         Route::put('/pendaftaran/update-status/{id}', [PendaftaranController::class, 'updateStatus']);
         Route::delete('/admin/pendaftaran/{id}', [PendaftaranController::class, 'destroy']);
+        
     });
 });
 

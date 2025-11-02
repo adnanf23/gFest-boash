@@ -28,8 +28,8 @@ class Pendaftaran extends Model
     protected $casts = [
         'tipe_pendaftar' => 'string',
         'usia' => 'string',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+      'created_at' => 'datetime:d-m-Y',
+    'updated_at' => 'datetime:d-m-Y',
     ];
 
     // Accessor untuk format nomor telepon
