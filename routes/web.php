@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\PendaftarAuthController;
 
 // ========== RUTE PUBLIK ==========
 Route::get('/', function () {
@@ -17,6 +18,22 @@ Route::get('/kajian-akbar', function () {
 
 Route::get('/kajian-akbar/pendaftaran', [PendaftaranController::class, 'index'])
     ->name('pendaftaran.index');
+
+
+
+// ROUTE LOGIN PENDAFTAR
+Route::get('/pendaftar/login', [PendaftarAuthController::class, 'showLoginForm'])->name('pendaftar.login');
+Route::post('/api/pendaftar/login', [PendaftarAuthController::class, 'login'])->name('pendaftar.login.submit');
+Route::post('/pendaftar/logout', [PendaftarAuthController::class, 'logout'])->name('pendaftar.logout');
+
+Route::middleware('auth:pendaftar')->group(function () {
+    Route::get('/pendaftar/dashboard', function () {
+        return Inertia::render('Pendaftar/Dashboard');
+    })->name('pendaftar.dashboard');
+});
+
+
+
 
 // API Publik untuk simpan pendaftaran
 Route::post('/api/pendaftaran', [PendaftaranController::class, 'store']);
